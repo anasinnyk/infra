@@ -1,0 +1,22 @@
+version: 2
+projects:
+- name: dmarket
+  dir: .
+  workspace: dmarket
+  autoplan:
+    when_modified: ["*.tf", "../modules/**.tf"]
+    enabled: true
+  apply_requirements: [mergeable, approved]
+  workflow: default
+workflows:
+  default:
+    plan:
+      steps:
+      - run: "echo $TF_VAR_google_credentials > $GOOGLE_APPLICATION_CREDENTIALS"
+      - init:
+          extra_args: [-backend-config=./projects/$WORKSPACE-backend.tfvars -backend-config=prefix=terraform/state/$WORKSPACE]
+      - plan:
+          extra_args: [-var-file=./projects/$WORKSPACE.tfvars]
+    apply:
+      steps:
+      - apply

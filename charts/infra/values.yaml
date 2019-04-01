@@ -1,0 +1,14 @@
+atlantis:
+  host: atlantis.dmarket.com
+  istio:
+    enabled: true
+vault:
+  crb:
+    argo: argo
+    argo-ui: argo
+    argo-events-sa: argo
+    atlantis: atlantis
+argo:
+  host: argo.dmarket.com
+  istio:
+    enabled: true

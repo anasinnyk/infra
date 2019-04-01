@@ -1,0 +1,18 @@
+{{- if .Values.atlantis.istio.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: atlantis-vs
+  namespace: atlantis
+spec:
+  hosts:
+  - "{{ .Values.atlantis.host }}"
+  gateways:
+  - atlantis-gateway
+  http:
+  - route:
+    - destination:
+        port:
+          number: 4141
+        host: atlantis
+{{- end -}}

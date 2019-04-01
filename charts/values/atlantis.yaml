@@ -1,0 +1,25 @@
+allowRepoConfig: true
+orgWhitelist: github.com/suntechsoft/*
+service:
+  port: 4141
+ingress: # configuration for traefik
+  enabled: false
+  host: atlantis.dmarket.com
+  path: /
+  annotations:
+    kubernetes.io/ingress.class: traefik
+image:
+  tag: v0.4.13
+podTemplate:
+  annotations:
+    vault.security.banzaicloud.io/vault-addr: "https://vault-vault.vault.svc.cluster.local:8200"
+    vault.security.banzaicloud.io/vault-role: "atlantis"
+    vault.security.banzaicloud.io/vault-skip-verify: "true"
+environment:
+  ATLANTIS_GH_USER: anasinnyk
+  ATLANTIS_GH_TOKEN: vault:secret/data/atlantis#GITHUB_TOKEN
+  ATLANTIS_GH_WEBHOOK_SECRET: vault:secret/data/atlantis#GITHUB_WEBHOOK_SECRET
+  GOOGLE_APPLICATION_CREDENTIALS: /atlantis-data/google.json
+  TF_VAR_google_credentials: vault:secret/data/atlantis#GOOGLE_CLOUD_KEYFILE_JSON
+  TF_VAR_github_token: vault:secret/data/atlantis#GITHUB_TOKEN
+  TF_VAR_cloudflare_token: vault:secret/data/atlantis#CLOUDFLARE_TOKEN

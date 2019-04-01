@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  labels:
+    sensors.argoproj.io/sensor-controller-instanceid: argo-events
+  name: golinter
+  namespace: argo
+spec:
+  imagePullPolicy: Always
+  imageVersion: latest
+  repeat: true
+  serviceAccountName: argo-events-sa
+  signals:
+  - name: webhook-gateway/github
+  triggers:
+  - name: argo-workflow
+    resource:
+      group: argoproj.io
+      kind: Workflow
+      version: v1alpha1
+      namespace: argo
+      parameters:
+      - dest: spec.arguments.parameters.0.value
+        src:
+          path: head_commit.id
+          signal: webhook-gateway/github
+      - dest: spec.arguments.parameters.1.value
+        src:
+          path: repository.full_name
+          signal: webhook-gateway/github
+      source:
+        url:
+          path: "https://raw.githubusercontent.com/suntechsoft/infra-provisioning/develop/workflows/golinter.yaml?token=AWpDUSitaHHwxIlLGUKN03x7jTtnnohJks5cVZmlwA%3D%3D"
+          verifycert: false

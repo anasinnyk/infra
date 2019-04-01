@@ -1,0 +1,4 @@
+loadBalancerIP: ${ip_address}
+
+rbac:
+  enabled: true

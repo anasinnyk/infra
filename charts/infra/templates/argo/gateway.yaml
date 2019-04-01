@@ -1,0 +1,17 @@
+{{- if .Values.argo.istio.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: argo-gateway
+  namespace: argo
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      name: argo
+      number: 80
+      protocol: HTTP
+    hosts:
+    - "{{ .Values.argo.host }}"
+{{- end -}}

@@ -1,0 +1,119 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: github-push-
+spec:
+  serviceAccountName: argo
+  entrypoint: golang-app
+  onExit: exit-handler
+  arguments:
+    parameters:
+    - name: revision
+      value: master
+    - name: repository
+      value: golang/example
+    - name: branch
+      value: master
+  volumeClaimTemplates:
+  - metadata:
+      name: workdir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  templates:
+  - name: exit-handler
+    steps:
+    - - name: success
+        template: github-status
+        arguments:
+          parameters:
+          - name: status
+            value: success
+        when: "{{workflow.status}} == Succeeded"
+      - name: failure
+        template: github-status
+        arguments:
+          parameters:
+          - name: status
+            value: failure
+        when: "{{workflow.status}} != Succeeded"
+  - name: golang-app
+    steps:
+    - - name: github-status-pending
+        template: github-status
+        arguments:
+          parameters:
+          - name: status
+            value: pending
+    - - name: build
+        template: docker
+  - name: github-status
+    inputs:
+      parameters:
+      - name: status
+    metadata:
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault-vault.vault.svc.cluster.local:8200"
+        vault.security.banzaicloud.io/vault-role: "argo"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+    script:
+      image: appropriate/curl
+      command: [sh]
+      source: |
+        curl -X POST \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -d  '{
+            "context": "argo/build",
+            "description": "Build docker image and publish on DockerHub",
+            "target_url": "https://argo.dmarket.com/workflows/argo/{{workflow.name}}",
+            "state": "{{inputs.parameters.status}}"
+          }' \
+          https://api.github.com/repos/{{workflow.parameters.repository}}/statuses/{{workflow.parameters.revision}}
+      env:
+      - name: GITHUB_TOKEN
+        value: vault:secret/data/argo#GITHUB_TOKEN
+  - name: docker
+    inputs:
+      artifacts:
+      - name: code
+        path: /go/src/github.com/{{workflow.parameters.repository}}
+        git:
+          repo: "git@github.com:{{workflow.parameters.repository}}.git"
+          revision: "{{workflow.parameters.revision}}"
+          sshPrivateKeySecret:
+            name: github-ssh
+            key: ssh_prv
+    metadata:
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "https://vault-vault.vault.svc.cluster.local:8200"
+        vault.security.banzaicloud.io/vault-role: "argo"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+    script:
+      image: docker:17.10
+      command: [sh]
+      source: |
+        until docker ps; do sleep 3; done;
+        cd /go/src/github.com/{{workflow.parameters.repository}}
+        echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+        docker build --build-arg GITHUB_TOKEN=$GITHUB_TOKEN -t {{workflow.parameters.repository}}:{{workflow.parameters.revision}} -f ./Dockerfile .
+        # docker push {{workflow.parameters.repository}}:{{workflow.parameters.revision}}
+      env:
+      - name: DOCKER_HOST
+        value: 127.0.0.1
+      - name: GITHUB_TOKEN
+        value: vault:secret/data/argo#GITHUB_TOKEN
+      - name: DOCKER_USER
+        value: vault:secret/data/argo#DOCKER_USER
+      - name: DOCKER_PASS
+        value: vault:secret/data/argo#DOCKER_PASS
+      volumeMounts:
+      - name: workdir
+        mountPath: /go
+    sidecars:
+    - name: dind
+      image: docker:17.10-dind
+      securityContext:
+        privileged: true
+      mirrorVolumeMounts: true

@@ -1,0 +1,19 @@
+tracing:
+  enabled: true
+kiali:
+  enabled: false
+  gateway:
+    enabled: true
+servicegraph:
+  enabled: true
+grafana:
+  enabled: true
+gateways:
+  istio-ingressgateway:
+    enabled: true
+    ports:
+    - port: 80
+      name: http2
+    - port: 443
+      name: https
+    loadBalancerIP: ${ip_address}

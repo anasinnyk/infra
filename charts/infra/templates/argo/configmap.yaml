@@ -1,0 +1,13 @@
+apiVersion: v1
+data:
+  github: |-
+    endpoint: "/github"
+    method: "POST"
+  index: |-
+    port: 12000
+    endpoint: "/"
+    method: "POST"
+kind: ConfigMap
+metadata:
+  name: argo-gateway-configmap
+  namespace: argo

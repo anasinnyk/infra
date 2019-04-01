@@ -1,0 +1,35 @@
+apiVersion: v1
+generated: "2018-06-09T01:17:31.692009986+03:00"
+repositories:
+- caFile: ""
+  cache: $HELM_HOME/.helm/repository/cache/stable-index.yaml
+  certFile: ""
+  keyFile: ""
+  name: stable
+  password: ""
+  url: https://kubernetes-charts.storage.googleapis.com
+  username: ""
+- caFile: ""
+  cache: $HELM_HOME/.helm/repository/cache/istio-index.yaml
+  certFile: ""
+  keyFile: ""
+  name: istio
+  password: ""
+  url: https://storage.googleapis.com/istio-release/releases/1.1.0-snapshot.4/charts
+  username: ""
+- caFile: ""
+  cache: $HELM_HOME/.helm/repository/cache/argo-index.yaml
+  certFile: ""
+  keyFile: ""
+  name: argo
+  password: ""
+  url: https://argoproj.github.io/argo-helm
+  username: ""
+- caFile: ""
+  cache: $HELM_HOME/.helm/repository/cache/banzaicloud-index.yaml
+  certFile: ""
+  keyFile: ""
+  name: banzaicloud
+  password: ""
+  url: http://kubernetes-charts.banzaicloud.com/branch/master
+  username: ""
